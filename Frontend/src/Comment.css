@@ -87,3 +87,25 @@
   background-color: #2980b9;
 }
 
+.comment {
+  margin-bottom: 20px;
+}
+
+.reply {
+  margin-left: 20px;
+  border-left: 2px solid #ddd;
+  padding-left: 10px;
+}
+
+.replies-section {
+  margin-top: 10px;
+  margin-left: 20px;
+}
+
+.add-comment {
+  margin-top: 20px;
+}
+
+.comment-actions button {
+  margin-right: 10px;
+}

@@ -10,6 +10,7 @@ const Comment = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
+  const [reply, setReply] = useState('');
 
   useEffect(() => {
     const headers = new Headers();
@@ -81,32 +82,59 @@ const Comment = () => {
     setReplyingTo(commentId === replyingTo ? null : commentId);
   };
 
-  const handleAddReply = (commentId) => {
-    if (newComment.trim()) {
-      const updatedComments = comments.map(comment => {
-        if (comment.comment_id === commentId) {
-          return {
-            ...comment,
-            replies: [
-              ...comment.replies,
-              {
-                comment_id: Date.now().toString(),
-                message: newComment,
-                likes: 0,
-                dislikes: 0,
-                author: name,
-              }
-            ]
-          };
+  const handleAddReply = async (commentId) => {
+    try {
+     
+      const response = await fetch(`http://localhost:4000/replycomments/${commentId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
-        return comment;
       });
-
-      setComments(updatedComments);
-      setNewComment('');
-      setReplyingTo(null);
-      toast.success("Reply added successfully!");
-
+  
+      if (!response.ok) {
+        throw new Error('Failed to fetch comment data');
+      }
+  
+      const commentData = await response.json();
+      console.log('Fetched comment data:', commentData);
+  
+      
+      const updatedCommentData = {
+        ...commentData,
+        replies: [
+          ...commentData.replies,
+          {
+            movie_id: id, 
+            comment_id: "", 
+            message: reply, 
+            likes: 0,
+            dislikes: 0,
+            replies: [],
+            author: name, 
+          }
+        ]
+      };
+  
+      
+      const updateResponse = await fetch('http://localhost:4000/addreply', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedCommentData)
+      });
+  
+      if (!updateResponse.ok) {
+        throw new Error('Failed to add reply');
+      }
+  
+      const result = await updateResponse.json();
+      console.log('Reply added successfully:', result);
+  
+      
+    } catch (error) {
+      console.error('Error adding reply:', error);
     
     }
   };
@@ -155,8 +183,8 @@ const Comment = () => {
       {replyingTo === comment.comment_id && (
         <div className="add-comment">
           <textarea
-            value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
             placeholder="Write a reply..."
           />
           <button onClick={() => handleAddReply(comment.comment_id)}>Post Reply</button>

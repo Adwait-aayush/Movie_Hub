@@ -17,10 +17,12 @@ func (app *application) router() http.Handler {
    mux.Get("/pop",app.popularMovies)
    mux.Get("/movie/{id}",app.GetMovbyid)
    mux.Get("/comments/{id}",app.Getcomsbid)
+   mux.Get("/replycomments/{id}",app.commentbycmtid)
    mux.Post("/Logout",app.Logout)
    mux.Post("/Register",app.Register)
    mux.Post("/comments",app.PostComment)
    mux.Post("/Login",app.LoginUser)
+   mux.Patch("/addreply",app.addreply)
 
 	return mux
 }

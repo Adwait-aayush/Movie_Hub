@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -101,13 +102,13 @@ func (app *application) postcomment(comment *models.Comments) (string, error) {
 	}
 	return "Comment posted successfully", nil
 }
-func (app *application) getcomments(id string)([]models.Comments,error){
+func (app *application) getcomments(id string) ([]models.Comments, error) {
 	var comments []models.Comments
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	collection := app.DB.Database("MovieHub").Collection("Comments")
-	filter:=bson.M{"movieid":id}
-	cursor,err:=collection.Find(ctx,filter)
+	filter := bson.M{"movieid": id}
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
 		return comments, err
 	}
@@ -115,15 +116,61 @@ func (app *application) getcomments(id string)([]models.Comments,error){
 
 	for cursor.Next(ctx) {
 		var comment models.Comments
-		err:=cursor.Decode(&comment)
-		if err!=nil{
+		err := cursor.Decode(&comment)
+		if err != nil {
 			return comments, err
 		}
-		comments=append(comments, comment)
+		comments = append(comments, comment)
 	}
-   if err:=cursor.Err();err!=nil{
-	return comments, err
-   }
-   return comments,nil
+	if err := cursor.Err(); err != nil {
+		return comments, err
+	}
+	return comments, nil
 
+}
+
+func (app *application) getcommentbyid(id string) (models.Comments, error) {
+	var comment models.Comments
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("Comments")
+	filter := bson.M{"commentid": id}
+	err := collection.FindOne(ctx, filter).Decode(&comment)
+	if err != nil {
+		return comment, err
+	}
+
+	return comment, nil
+
+}
+func (app *application) addcomments(comment models.Comments) (string, error) {
+    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer cancel()
+
+    collection := app.DB.Database("MovieHub").Collection("Comments")
+
+    filter := bson.M{
+        "movieid":   comment.MovieID,
+        "commentid": comment.CommentID,
+    }
+
+    // Use $push to add the reply to the replies array
+    update := bson.M{
+        "$push": bson.M{
+            "replies": comment.Replies[0], // Assuming the comment.Replies contains the new reply
+        },
+    }
+
+    var result *mongo.UpdateResult
+    result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+    if err != nil {
+        return "Unable to insert", err
+    }
+
+    // Check if the document was actually updated or inserted
+    if result.MatchedCount == 0 {
+        return "No matching comment found, a new one was inserted", nil
+    }
+
+    return "Comment updated or inserted successfully", nil
 }

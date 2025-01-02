@@ -296,3 +296,51 @@ func(app *application)Getcomsbid(w http.ResponseWriter,r *http.Request){
 	}
 
 }
+
+func(app *application)commentbycmtid(w http.ResponseWriter,r *http.Request){
+	id:=chi.URLParam(r,"id")
+	comment,err:=app.getcommentbyid(id)
+	if err!=nil{
+		http.Error(w,"Invalid comment id",http.StatusBadRequest)
+	}
+	w.Header().Set("Content-Type","application/json")
+	err=json.NewEncoder(w).Encode(comment)
+	if err!=nil{
+		http.Error(w,"Error Displaying Comment",http.StatusInternalServerError)
+	}
+
+}
+
+func (app *application) addreply(w http.ResponseWriter, r *http.Request) {
+    
+    var comment models.Comments
+    err := json.NewDecoder(r.Body).Decode(&comment)
+    if err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    
+    message, err := app.addcomments(comment)
+    if err != nil {
+        http.Error(w, "Error Adding Comment", http.StatusInternalServerError)
+        return
+    }
+
+    type response struct {
+        Message string `json:"message"`
+        Error   string `json:"error"`
+    }
+
+    
+    response1 := response{
+        Message: message,
+        Error:   fmt.Sprintf("%v", err), 
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    err = json.NewEncoder(w).Encode(response1)
+    if err != nil {
+        http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
+    }
+}
