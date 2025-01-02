@@ -5,6 +5,7 @@ import (
 	"project/models"
 	"time"
 
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/crypto/bcrypt"
@@ -66,11 +67,63 @@ func (app *application) FindUser(user *models.LoginUser) (models.LoginUser, erro
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	collection := app.DB.Database("MovieHub").Collection("Users")
-	filter:=bson.M{"email":user.Email}
+	filter := bson.M{"email": user.Email}
 	var existingUser models.LoginUser
-	err:=collection.FindOne(ctx,filter).Decode(&existingUser)
-	if err!=nil{
+	err := collection.FindOne(ctx, filter).Decode(&existingUser)
+	if err != nil {
 		return existingUser, err
 	}
-	return existingUser,nil
+	return existingUser, nil
+}
+func (app *application) Gmbid(id int) (models.Movie, error) {
+	var movie models.Movie
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("MoviesPopular")
+	err := collection.FindOne(ctx, bson.M{"id": id}).Decode(&movie)
+	if err != nil {
+		return movie, err
+	}
+	return movie, nil
+}
+
+func (app *application) GenerateCommentID() string {
+	return uuid.New().String()
+}
+
+func (app *application) postcomment(comment *models.Comments) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("Comments")
+	_, err := collection.InsertOne(ctx, comment)
+	if err != nil {
+		return "Unable to insert comment", err
+	}
+	return "Comment posted successfully", nil
+}
+func (app *application) getcomments(id string)([]models.Comments,error){
+	var comments []models.Comments
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("Comments")
+	filter:=bson.M{"movieid":id}
+	cursor,err:=collection.Find(ctx,filter)
+	if err != nil {
+		return comments, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var comment models.Comments
+		err:=cursor.Decode(&comment)
+		if err!=nil{
+			return comments, err
+		}
+		comments=append(comments, comment)
+	}
+   if err:=cursor.Err();err!=nil{
+	return comments, err
+   }
+   return comments,nil
+
 }

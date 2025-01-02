@@ -3,11 +3,12 @@ import './Homepage.css';
 import Logo from "./Logo.jpeg";
 import Signin from './Signin';
 import Register from './Register';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 export default function Homepage() {
     const [movies, setMovies] = useState([]);
     const movieListRef = useRef(null);
-
+   const navigate=useNavigate()
     useEffect(() => {
         const headers = new Headers();
         headers.append('Content-Type', 'application/json');
@@ -73,7 +74,7 @@ export default function Homepage() {
                     <div className="slider-container">
                         <div ref={movieListRef} className="movie-list">
                             {movies.map((movie, index) => (
-                                <div key={index} className="movie-card">
+                                <div key={index} className="movie-card" onClick={() => navigate(`/movie/${movie.id}`)}>
                                     <img src={`https://image.tmdb.org/t/p/w200/${movie.poster_path}`} alt={movie.title} />
                                     <h3>{movie.original_title}</h3>
                                     <div className="star-rating">

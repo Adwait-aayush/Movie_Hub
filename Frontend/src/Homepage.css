@@ -4,10 +4,10 @@ body {
     padding: 0;
     font-family: 'Arial', sans-serif;
     color: aliceblue;
-    overflow: hidden;
+    overflow: auto;
     -ms-overflow-style: none;  
     scrollbar-width: none;
-    overflow-x: hidden;
+    overflow-x: auto;
 }
 
 .Homepage {
@@ -40,7 +40,7 @@ body {
 
 .movie-card {
     background-color: #212529;
-    color: aliceblue;
+    color: rgb(40, 51, 61);
     padding: 20px;
     border-radius: 8px;
     width: 200px;

@@ -1,0 +1,89 @@
+.comment-section {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  margin-top: 30px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.comment-section h2 {
+  color: var(--primary-color);
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.comment {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.comment.reply {
+  margin-left: 30px;
+  background-color: #f1f1f1;
+}
+
+.comment h4 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 18px;
+}
+
+.comment p {
+  font-size: 16px;
+  margin-top: 5px;
+  color: var(--text-color);
+}
+
+.comment-actions {
+  margin-top: 10px;
+}
+
+.comment-actions button {
+  background-color: transparent;
+  border: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  font-size: 16px;
+  margin-right: 10px;
+  transition: color 0.3s ease;
+}
+
+.comment-actions button:hover {
+  color: #2980b9;
+}
+
+.add-comment {
+  margin-top: 30px;
+}
+
+.add-comment textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.add-comment button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.add-comment button:hover {
+  background-color: #2980b9;
+}
+

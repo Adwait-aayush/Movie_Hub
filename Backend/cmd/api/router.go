@@ -15,8 +15,11 @@ func (app *application) router() http.Handler {
 	mux.Get("/Username",app.GetUsername)
    mux.Get("/Home",app.Hometry)
    mux.Get("/pop",app.popularMovies)
+   mux.Get("/movie/{id}",app.GetMovbyid)
+   mux.Get("/comments/{id}",app.Getcomsbid)
    mux.Post("/Logout",app.Logout)
    mux.Post("/Register",app.Register)
+   mux.Post("/comments",app.PostComment)
    mux.Post("/Login",app.LoginUser)
 
 	return mux

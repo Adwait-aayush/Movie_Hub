@@ -7,14 +7,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"project/models"
+	"strconv"
 	"time"
 
+	"github.com/go-chi/chi"
 	"github.com/gorilla/sessions"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
-
-
 
 func (app *application) Hometry(w http.ResponseWriter, r *http.Request) {
 	type response struct {
@@ -221,22 +221,78 @@ func (app *application) GetUsername(w http.ResponseWriter, r *http.Request) {
 }
 func (app *application) Logout(w http.ResponseWriter, r *http.Request) {
 	var store = sessions.NewCookieStore([]byte("super-secret"))
-    session, err := store.Get(r, "session-id")
-    if err != nil {
-        http.Error(w, "Error retrieving session: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
+	session, err := store.Get(r, "session-id")
+	if err != nil {
+		http.Error(w, "Error retrieving session: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    session.Values = nil
+	session.Values = nil
 
-    err = session.Save(r, w)
-    if err != nil {
-        http.Error(w, "Error saving session: "+err.Error(), http.StatusInternalServerError)
-        return
-    }
+	err = session.Save(r, w)
+	if err != nil {
+		http.Error(w, "Error saving session: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]string{
-        "message": "Logout successful",
-    })
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "Logout successful",
+	})
+}
+
+func (app *application) GetMovbyid(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		http.Error(w, "Invalid movie id", http.StatusBadRequest)
+		return
+	}
+
+	movie, err := app.Gmbid(id)
+	if err != nil {
+		http.Error(w, "Movie not found", http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(movie); err != nil {
+		http.Error(w, "Error Displaying Movie", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (app *application) PostComment(w http.ResponseWriter, r *http.Request) {
+	var comment models.Comments
+	err := json.NewDecoder(r.Body).Decode(&comment)
+	if err != nil {
+		http.Error(w, "Invalid JSON in request body", http.StatusBadRequest)
+	}
+	comment.CommentID = app.GenerateCommentID()
+	message, err := app.postcomment(&comment)
+	type response struct {
+		Message string `json:"message"`
+		Error   error  `json:"error"`
+	}
+	response1 := response{
+		Message: message,
+		Error:   err,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response1); err != nil {
+		return
+	}
+}
+
+
+func(app *application)Getcomsbid(w http.ResponseWriter,r *http.Request){
+	id:=chi.URLParam(r,"id")
+	comments,err:=app.getcomments(id)
+	if err!=nil{
+		http.Error(w,"Invalid comment id",http.StatusBadRequest)
+	}
+	err=json.NewEncoder(w).Encode(comments)
+	if err!=nil{
+		http.Error(w,"Error Displaying Comments",http.StatusInternalServerError)
+	}
+
 }

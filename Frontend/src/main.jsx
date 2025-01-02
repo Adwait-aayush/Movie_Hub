@@ -7,6 +7,7 @@ import './index.css';
 import MovieForm from './MovieFrom';
 import Registration from './Registration';
 import LoginForm from './LoginForm';
+import Movie from './Movie';
 
 const router = createBrowserRouter([
   {
@@ -15,6 +16,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Homepage /> },
       { path: '/addmov', element: <MovieForm /> },
+      {path :'/movie/:id',element:<Movie/>},
     ],
   },
   { path: '/Registration', element: <Registration /> }, {path:"/Login",element:<LoginForm/>},
