@@ -344,3 +344,21 @@ func (app *application) addreply(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
     }
 }
+
+func (app *application) Searchmovies (w http.ResponseWriter,r *http.Request){
+	query := r.URL.Query().Get("name")
+
+	if len(query)<3{
+		http.Error(w,"Invalid query",http.StatusBadRequest)
+	}
+	movies,err:=app.Searching(query)
+	if err!=nil{
+		http.Error(w,"Error Searching Movies",http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type","application/json")
+	w.WriteHeader(http.StatusOK)
+	err=json.NewEncoder(w).Encode(movies)
+	if err!=nil{
+		http.Error(w,"Error Displaying Movies",http.StatusInternalServerError)
+	}
+}

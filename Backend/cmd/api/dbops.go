@@ -144,36 +144,64 @@ func (app *application) getcommentbyid(id string) (models.Comments, error) {
 
 }
 func (app *application) addcomments(comment models.Comments) (string, error) {
-    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-    defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 
-    collection := app.DB.Database("MovieHub").Collection("Comments")
+	collection := app.DB.Database("MovieHub").Collection("Comments")
 
-    // Create a filter to find the comment by movie ID and comment ID
-    filter := bson.M{
-        "movieid":   comment.MovieID,
-        "commentid": comment.CommentID,
-    }
+	// Create a filter to find the comment by movie ID and comment ID
+	filter := bson.M{
+		"movieid":   comment.MovieID,
+		"commentid": comment.CommentID,
+	}
 
-    // Use $push with $each to handle multiple replies in a single update
-    update := bson.M{
-        "$push": bson.M{
-            "replies": bson.M{
-                "$each": comment.Replies, // Add all replies in the array
-            },
-        },
-    }
+	// Use $push with $each to handle multiple replies in a single update
+	update := bson.M{
+		"$push": bson.M{
+			"replies": bson.M{
+				"$each": comment.Replies, // Add all replies in the array
+			},
+		},
+	}
 
-    // Perform the update operation with upsert enabled
-    result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
-    if err != nil {
-        return "Unable to update or insert comments", err
-    }
+	// Perform the update operation with upsert enabled
+	result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+	if err != nil {
+		return "Unable to update or insert comments", err
+	}
 
-    // Check if the document was matched or inserted
-    if result.MatchedCount == 0 {
-        return "No matching comment found, a new one was inserted", nil
-    }
+	// Check if the document was matched or inserted
+	if result.MatchedCount == 0 {
+		return "No matching comment found, a new one was inserted", nil
+	}
 
-    return "Comment updated with replies successfully", nil
+	return "Comment updated with replies successfully", nil
+}
+
+func (app *application) Searching(name string) ([]models.Movie, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("MoviesPopular")
+	filter := bson.M{
+		"$or": []interface{}{
+			bson.M{"name": bson.M{"$regex": name, "$options": "i"}},
+			bson.M{"originaltitle": bson.M{"$regex": name, "$options": "i"}},
+		},
+	}
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var movies []models.Movie
+	for cursor.Next(ctx) {
+		var movie models.Movie
+		if err := cursor.Decode(&movie); err != nil {
+			return nil, err
+
+		}
+		movies = append(movies, movie)
+	}
+return movies, nil
 }

@@ -55,7 +55,8 @@ export default function Navbuttons() {
         <button className="home" onClick={() => navigate("/")}>
           <FontAwesomeIcon icon={faHouse} size="3x" /> <p>Home</p>
         </button>
-        <button className="home">
+
+        <button className="home" onClick={()=>navigate("/Search")}>
           <FontAwesomeIcon icon={faSearch} size="3x" /> <p>Search</p>
         </button>
 
@@ -72,9 +73,7 @@ export default function Navbuttons() {
           </button>
         )}
 
-        <button className="home">
-          <FontAwesomeIcon icon={faArrowTrendUp} size="3x" /> <p>Trending</p>
-        </button>
+        
       </div>
       <hr className="three-d-rule2" />
 

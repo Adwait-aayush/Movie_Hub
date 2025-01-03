@@ -18,6 +18,7 @@ func (app *application) router() http.Handler {
    mux.Get("/movie/{id}",app.GetMovbyid)
    mux.Get("/comments/{id}",app.Getcomsbid)
    mux.Get("/replycomments/{id}",app.commentbycmtid)
+   mux.Get("/Search",app.Searchmovies)
    mux.Post("/Logout",app.Logout)
    mux.Post("/Register",app.Register)
    mux.Post("/comments",app.PostComment)
