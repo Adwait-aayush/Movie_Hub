@@ -144,38 +144,64 @@ func (app *application) getcommentbyid(id string) (models.Comments, error) {
 
 }
 func (app *application) addcomments(comment models.Comments) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+    ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+    defer cancel()
 
-	collection := app.DB.Database("MovieHub").Collection("Comments")
+    collection := app.DB.Database("MovieHub").Collection("Comments")
 
-	// Create a filter to find the comment by movie ID and comment ID
-	filter := bson.M{
-		"movieid":   comment.MovieID,
-		"commentid": comment.CommentID,
-	}
+    // Create a filter to find the comment by movie ID and comment ID
+    filter := bson.M{
+        "movieid":   comment.MovieID,
+        "commentid": comment.CommentID,
+    }
 
-	// Use $push with $each to handle multiple replies in a single update
-	update := bson.M{
-		"$push": bson.M{
-			"replies": bson.M{
-				"$each": comment.Replies, // Add all replies in the array
-			},
-		},
-	}
+    // Find the existing document
+    var existingComment models.Comments
+    err := collection.FindOne(ctx, filter).Decode(&existingComment)
+    if err != nil && err != mongo.ErrNoDocuments {
+        return "Unable to fetch existing comment", err
+    }
 
-	// Perform the update operation with upsert enabled
-	result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
-	if err != nil {
-		return "Unable to update or insert comments", err
-	}
+    // Create a map of existing reply IDs for quick lookup
+    existingReplyIDs := make(map[string]bool)
+    for _, reply := range existingComment.Replies {
+        existingReplyIDs[reply.CommentID] = true
+    }
 
-	// Check if the document was matched or inserted
-	if result.MatchedCount == 0 {
-		return "No matching comment found, a new one was inserted", nil
-	}
+    // Filter out duplicate replies
+    uniqueReplies := []models.Comments{}
+    for _, reply := range comment.Replies {
+        if !existingReplyIDs[reply.CommentID] {
+            uniqueReplies = append(uniqueReplies, reply)
+        }
+    }
 
-	return "Comment updated with replies successfully", nil
+    // If there are no new unique replies, return early
+    if len(uniqueReplies) == 0 {
+        return "No new replies to add", nil
+    }
+
+    // Use $push with $each to add only unique replies
+    update := bson.M{
+        "$push": bson.M{
+            "replies": bson.M{
+                "$each": uniqueReplies, // Add only unique replies
+            },
+        },
+    }
+
+    // Perform the update operation with upsert enabled
+    result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
+    if err != nil {
+        return "Unable to update or insert comments", err
+    }
+
+    // Check if the document was matched or inserted
+    if result.MatchedCount == 0 {
+        return "No matching comment found, a new one was inserted", nil
+    }
+
+    return "Comment updated with unique replies successfully", nil
 }
 
 func (app *application) Searching(name string) ([]models.Movie, error) {

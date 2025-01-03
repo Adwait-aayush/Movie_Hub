@@ -319,8 +319,11 @@ func (app *application) addreply(w http.ResponseWriter, r *http.Request) {
         http.Error(w, "Invalid JSON", http.StatusBadRequest)
         return
     }
-
-    
+	for i := range comment.Replies {
+		if comment.Replies[i].CommentID == "" { 
+			comment.Replies[i].CommentID = app.GenerateCommentID()
+		}
+	}
     message, err := app.addcomments(comment)
     if err != nil {
         http.Error(w, "Error Adding Comment", http.StatusInternalServerError)

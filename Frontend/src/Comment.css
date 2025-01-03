@@ -10,6 +10,8 @@ body {
   margin: 0;
   padding: 20px;
   background-color: #0f0f0f;
+  position: relative;
+  min-height: 100vh; /* Ensure it fills the screen */
 }
 
 .comment-section h2 {
@@ -22,6 +24,7 @@ body {
   border-bottom: 1px solid #272727;
   padding: 15px 0;
   margin-bottom: 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add box shadow */
 }
 
 .comment:last-child {
@@ -30,7 +33,7 @@ body {
 
 .comment h4 {
   color: #aaa;
-  font-size: 14px;
+  font-size: 20px;
   margin: 0 0 5px 0;
 }
 
@@ -39,6 +42,7 @@ body {
   font-size: 14px;
   margin: 0 0 10px 0;
   line-height: 1.4;
+  text-align: left; /* Align text to the left */
 }
 
 .comment.reply {
@@ -69,6 +73,11 @@ body {
 
 .add-comment {
   margin-top: 20px;
+  position: sticky;
+  bottom: 20px; /* Stick it to the bottom */
+  background-color: #0f0f0f; /* Ensure it blends with the background */
+  padding: 20px 0;
+  z-index: 1000;
 }
 
 .add-comment textarea {
@@ -117,4 +126,3 @@ body {
 .replies-container {
   margin-top: 10px;
 }
-
