@@ -149,28 +149,31 @@ func (app *application) addcomments(comment models.Comments) (string, error) {
 
     collection := app.DB.Database("MovieHub").Collection("Comments")
 
+    // Create a filter to find the comment by movie ID and comment ID
     filter := bson.M{
         "movieid":   comment.MovieID,
         "commentid": comment.CommentID,
     }
 
-    // Use $push to add the reply to the replies array
+    // Use $push with $each to handle multiple replies in a single update
     update := bson.M{
         "$push": bson.M{
-            "replies": comment.Replies[0], // Assuming the comment.Replies contains the new reply
+            "replies": bson.M{
+                "$each": comment.Replies, // Add all replies in the array
+            },
         },
     }
 
-    var result *mongo.UpdateResult
+    // Perform the update operation with upsert enabled
     result, err := collection.UpdateOne(ctx, filter, update, options.Update().SetUpsert(true))
     if err != nil {
-        return "Unable to insert", err
+        return "Unable to update or insert comments", err
     }
 
-    // Check if the document was actually updated or inserted
+    // Check if the document was matched or inserted
     if result.MatchedCount == 0 {
         return "No matching comment found, a new one was inserted", nil
     }
 
-    return "Comment updated or inserted successfully", nil
+    return "Comment updated with replies successfully", nil
 }

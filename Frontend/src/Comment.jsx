@@ -11,6 +11,7 @@ const Comment = () => {
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState(null);
   const [reply, setReply] = useState('');
+  const [shownReplies, setShownReplies] = useState({});
 
   useEffect(() => {
     const headers = new Headers();
@@ -84,39 +85,36 @@ const Comment = () => {
 
   const handleAddReply = async (commentId) => {
     try {
-     
       const response = await fetch(`http://localhost:4000/replycomments/${commentId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
         }
       });
-  
+
       if (!response.ok) {
         throw new Error('Failed to fetch comment data');
       }
-  
+
       const commentData = await response.json();
       console.log('Fetched comment data:', commentData);
-  
-      
+
       const updatedCommentData = {
         ...commentData,
         replies: [
           ...commentData.replies,
           {
-            movie_id: id, 
-            comment_id: "", 
-            message: reply, 
+            movie_id: id,
+            comment_id: "",
+            message: reply,
             likes: 0,
             dislikes: 0,
             replies: [],
-            author: name, 
+            author: name,
           }
         ]
       };
-  
-      
+
       const updateResponse = await fetch('http://localhost:4000/addreply', {
         method: 'PATCH',
         headers: {
@@ -124,18 +122,24 @@ const Comment = () => {
         },
         body: JSON.stringify(updatedCommentData)
       });
-  
+
       if (!updateResponse.ok) {
         throw new Error('Failed to add reply');
       }
-  
+
       const result = await updateResponse.json();
       console.log('Reply added successfully:', result);
-  
-      
+
+      setReply('');
+      setReplyingTo(null);
+
+      // Refresh comments
+      const refreshResponse = await fetch(`http://localhost:4000/comments/${id}`);
+      const refreshedComments = await refreshResponse.json();
+      setComments(refreshedComments || []);
+
     } catch (error) {
       console.error('Error adding reply:', error);
-    
     }
   };
 
@@ -147,7 +151,6 @@ const Comment = () => {
       return comment;
     });
     setComments(updatedComments);
-   
   };
 
   const handleDislike = (commentId) => {
@@ -158,14 +161,19 @@ const Comment = () => {
       return comment;
     });
     setComments(updatedComments);
-    
   };
 
   const handleDelete = (commentId) => {
     const updatedComments = comments.filter(comment => comment.comment_id !== commentId);
     setComments(updatedComments);
     toast.success("Comment deleted successfully!");
-   
+  };
+
+  const toggleReplies = (commentId) => {
+    setShownReplies(prev => ({
+      ...prev,
+      [commentId]: !prev[commentId]
+    }));
   };
 
   const renderComment = (comment, isReply = false) => (
@@ -190,7 +198,21 @@ const Comment = () => {
           <button onClick={() => handleAddReply(comment.comment_id)}>Post Reply</button>
         </div>
       )}
-      {comment.replies && comment.replies.map(reply => renderComment(reply, true))}
+      {!isReply && comment.replies && comment.replies.length > 0 && (
+        <>
+          <button 
+            className="show-replies-button" 
+            onClick={() => toggleReplies(comment.comment_id)}
+          >
+            {shownReplies[comment.comment_id] ? 'Hide' : 'Show'} {comment.replies.length} {comment.replies.length === 1 ? 'reply' : 'replies'}
+          </button>
+          {shownReplies[comment.comment_id] && (
+            <div className="replies-container">
+              {comment.replies.map(reply => renderComment(reply, true))}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 
@@ -199,7 +221,11 @@ const Comment = () => {
       <ToastContainer />
       <h2>Comments</h2>
       {comments && comments.length > 0 ? (
-        comments.map(comment => renderComment(comment))
+        comments.map(comment => (
+          <div key={comment.comment_id}>
+            {renderComment(comment)}
+          </div>
+        ))
       ) : (
         <p>No comments yet. Be the first to comment!</p>
       )}
