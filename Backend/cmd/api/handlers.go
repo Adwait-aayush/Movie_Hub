@@ -365,3 +365,21 @@ func (app *application) Searchmovies (w http.ResponseWriter,r *http.Request){
 		http.Error(w,"Error Displaying Movies",http.StatusInternalServerError)
 	}
 }
+
+func (app *application) DeleteComment (w http.ResponseWriter, r *http.Request) {
+	commentID:=chi.URLParam(r,"id")
+	if len(commentID) == 0 {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+	err:=app.Deletecmnt(commentID)
+	if err!=nil{
+		http.Error(w, "Error Deleting Comment", http.StatusInternalServerError)
+	}
+	err=json.NewEncoder(w).Encode(err)
+	if err!=nil{
+		http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
+	}
+
+}
+

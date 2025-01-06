@@ -164,9 +164,24 @@ const Comment = () => {
   };
 
   const handleDelete = (commentId) => {
-    const updatedComments = comments.filter(comment => comment.comment_id !== commentId);
-    setComments(updatedComments);
-    toast.success("Comment deleted successfully!");
+    const headers=new Headers();
+    headers.append('Content-Type', 'application/json');
+    const reqOptions={
+      method: 'DELETE',
+      headers: headers,
+
+    }
+    fetch(`http://localhost:4000/Deletecomment/${commentId}`,reqOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(response.statusText);
+        }
+        return response.json();
+        })
+        .then(data => {
+          console.log(data);
+          setComments(comments.filter(comment => comment.comment_id !== commentId));
+          })
   };
 
   const toggleReplies = (commentId) => {

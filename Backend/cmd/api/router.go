@@ -24,6 +24,7 @@ func (app *application) router() http.Handler {
    mux.Post("/comments",app.PostComment)
    mux.Post("/Login",app.LoginUser)
    mux.Patch("/addreply",app.addreply)
+   mux.Delete("/Deletecomment/{id}",app.DeleteComment)
 
 	return mux
 }
