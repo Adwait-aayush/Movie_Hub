@@ -213,7 +213,7 @@ func (app *application) addcomments(comment models.Comments) (string, error) {
 func (app *application) Searching(name string) ([]models.Movie, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	collection := app.DB.Database("MovieHub").Collection("MoviesPopular")
+	collection := app.DB.Database("MovieHub").Collection("AllMovies")
 	filter := bson.M{
 		"$or": []interface{}{
 			bson.M{"name": bson.M{"$regex": name, "$options": "i"}},
