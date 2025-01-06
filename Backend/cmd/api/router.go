@@ -23,6 +23,7 @@ func (app *application) router() http.Handler {
    mux.Post("/Register",app.Register)
    mux.Post("/comments",app.PostComment)
    mux.Post("/Login",app.LoginUser)
+   mux.Post("/addusermovies",app.addmovies)
    mux.Patch("/addreply",app.addreply)
    mux.Delete("/Deletecomment/{id}",app.DeleteComment)
 

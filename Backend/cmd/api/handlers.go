@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"project/models"
 	"strconv"
 	"time"
@@ -283,103 +284,180 @@ func (app *application) PostComment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-
-func(app *application)Getcomsbid(w http.ResponseWriter,r *http.Request){
-	id:=chi.URLParam(r,"id")
-	comments,err:=app.getcomments(id)
-	if err!=nil{
-		http.Error(w,"Invalid comment id",http.StatusBadRequest)
+func (app *application) Getcomsbid(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	comments, err := app.getcomments(id)
+	if err != nil {
+		http.Error(w, "Invalid comment id", http.StatusBadRequest)
 	}
-	err=json.NewEncoder(w).Encode(comments)
-	if err!=nil{
-		http.Error(w,"Error Displaying Comments",http.StatusInternalServerError)
-	}
-
-}
-
-func(app *application)commentbycmtid(w http.ResponseWriter,r *http.Request){
-	id:=chi.URLParam(r,"id")
-	comment,err:=app.getcommentbyid(id)
-	if err!=nil{
-		http.Error(w,"Invalid comment id",http.StatusBadRequest)
-	}
-	w.Header().Set("Content-Type","application/json")
-	err=json.NewEncoder(w).Encode(comment)
-	if err!=nil{
-		http.Error(w,"Error Displaying Comment",http.StatusInternalServerError)
+	err = json.NewEncoder(w).Encode(comments)
+	if err != nil {
+		http.Error(w, "Error Displaying Comments", http.StatusInternalServerError)
 	}
 
 }
 
-func (app *application) addreply(w http.ResponseWriter, r *http.Request) {
-    
-    var comment models.Comments
-    err := json.NewDecoder(r.Body).Decode(&comment)
-    if err != nil {
-        http.Error(w, "Invalid JSON", http.StatusBadRequest)
-        return
-    }
-	for i := range comment.Replies {
-		if comment.Replies[i].CommentID == "" { 
-			comment.Replies[i].CommentID = app.GenerateCommentID()
-		}
+func (app *application) commentbycmtid(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	comment, err := app.getcommentbyid(id)
+	if err != nil {
+		http.Error(w, "Invalid comment id", http.StatusBadRequest)
 	}
-    message, err := app.addcomments(comment)
-    if err != nil {
-        http.Error(w, "Error Adding Comment", http.StatusInternalServerError)
-        return
-    }
-
-    type response struct {
-        Message string `json:"message"`
-        Error   string `json:"error"`
-    }
-
-    
-    response1 := response{
-        Message: message,
-        Error:   fmt.Sprintf("%v", err), 
-    }
-
-    w.Header().Set("Content-Type", "application/json")
-    err = json.NewEncoder(w).Encode(response1)
-    if err != nil {
-        http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
-    }
-}
-
-func (app *application) Searchmovies (w http.ResponseWriter,r *http.Request){
-	query := r.URL.Query().Get("name")
-
-	if len(query)<3{
-		http.Error(w,"Invalid query",http.StatusBadRequest)
-	}
-	movies,err:=app.Searching(query)
-	if err!=nil{
-		http.Error(w,"Error Searching Movies",http.StatusInternalServerError)
-	}
-	w.Header().Set("Content-Type","application/json")
-	w.WriteHeader(http.StatusOK)
-	err=json.NewEncoder(w).Encode(movies)
-	if err!=nil{
-		http.Error(w,"Error Displaying Movies",http.StatusInternalServerError)
-	}
-}
-
-func (app *application) DeleteComment (w http.ResponseWriter, r *http.Request) {
-	commentID:=chi.URLParam(r,"id")
-	if len(commentID) == 0 {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
-		return
-	}
-	err:=app.Deletecmnt(commentID)
-	if err!=nil{
-		http.Error(w, "Error Deleting Comment", http.StatusInternalServerError)
-	}
-	err=json.NewEncoder(w).Encode(err)
-	if err!=nil{
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(comment)
+	if err != nil {
 		http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
 	}
 
 }
 
+func (app *application) addreply(w http.ResponseWriter, r *http.Request) {
+
+	var comment models.Comments
+	err := json.NewDecoder(r.Body).Decode(&comment)
+	if err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	for i := range comment.Replies {
+		if comment.Replies[i].CommentID == "" {
+			comment.Replies[i].CommentID = app.GenerateCommentID()
+		}
+	}
+	message, err := app.addcomments(comment)
+	if err != nil {
+		http.Error(w, "Error Adding Comment", http.StatusInternalServerError)
+		return
+	}
+
+	type response struct {
+		Message string `json:"message"`
+		Error   string `json:"error"`
+	}
+
+	response1 := response{
+		Message: message,
+		Error:   fmt.Sprintf("%v", err),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response1)
+	if err != nil {
+		http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
+	}
+}
+
+func (app *application) Searchmovies(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("name")
+
+	if len(query) < 3 {
+		http.Error(w, "Invalid query", http.StatusBadRequest)
+	}
+	movies, err := app.Searching(query)
+	if err != nil {
+		http.Error(w, "Error Searching Movies", http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(movies)
+	if err != nil {
+		http.Error(w, "Error Displaying Movies", http.StatusInternalServerError)
+	}
+}
+
+func (app *application) DeleteComment(w http.ResponseWriter, r *http.Request) {
+	commentID := chi.URLParam(r, "id")
+	if len(commentID) == 0 {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+	err := app.Deletecmnt(commentID)
+	if err != nil {
+		http.Error(w, "Error Deleting Comment", http.StatusInternalServerError)
+	}
+	err = json.NewEncoder(w).Encode(err)
+	if err != nil {
+		http.Error(w, "Error Displaying Comment", http.StatusInternalServerError)
+	}
+
+}
+
+func (app *application) addmovies(w http.ResponseWriter, r *http.Request) {
+	var movie models.Movie
+	err := json.NewDecoder(r.Body).Decode(&movie)
+	if err != nil {
+		http.Error(w, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	type rresp struct {
+		Page    int `json:"page"`
+		Results []struct {
+			PosterPath string `json:"poster_path"`
+		} `json:"results"`
+	}
+
+	client := &http.Client{}
+	url := fmt.Sprintf("http://api.themoviedb.org/3/search/movie?api_key=%s&query=%s", app.Apikey, url.QueryEscape(movie.Title))
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		http.Error(w, "Error creating request", http.StatusInternalServerError)
+		return
+	}
+
+	req.Header.Add("Accept", "application/json")
+	req.Header.Add("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, "Error sending request", http.StatusInternalServerError)
+		return
+	}
+	defer resp.Body.Close()
+
+	cont, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Error reading response", http.StatusInternalServerError)
+		return
+	}
+
+	var responseobject rresp
+	err = json.Unmarshal(cont, &responseobject)
+	if err != nil {
+		http.Error(w, "Error unmarshaling response", http.StatusInternalServerError)
+		return
+	}
+
+	if len(responseobject.Results) > 0 {
+		movie.PosterPath = responseobject.Results[0].PosterPath
+	}
+
+	id := app.GenerateMovieid()
+
+
+	movie.ID = id
+
+	response, err := app.ADDmovie(movie)
+	if err != nil {
+		http.Error(w, "Error creating movie", http.StatusInternalServerError)
+		return
+	}
+
+	type response1 struct {
+		Message string `json:"message"`
+		Error   string `json:"error,omitempty"`
+	}
+
+	resp1 := response1{
+		Message: response,
+	
+	}
+
+	
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp1)
+	if err != nil {
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		return
+	}
+}

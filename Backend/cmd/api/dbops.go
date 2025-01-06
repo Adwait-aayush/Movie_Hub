@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"math/rand"
 	"project/models"
 	"time"
 
@@ -80,7 +81,7 @@ func (app *application) Gmbid(id int) (models.Movie, error) {
 	var movie models.Movie
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	collection := app.DB.Database("MovieHub").Collection("MoviesPopular")
+	collection := app.DB.Database("MovieHub").Collection("AllMovies")
 	err := collection.FindOne(ctx, bson.M{"id": id}).Decode(&movie)
 	if err != nil {
 		return movie, err
@@ -216,7 +217,7 @@ func (app *application) Searching(name string) ([]models.Movie, error) {
 	collection := app.DB.Database("MovieHub").Collection("AllMovies")
 	filter := bson.M{
 		"$or": []interface{}{
-			bson.M{"name": bson.M{"$regex": name, "$options": "i"}},
+			bson.M{"title": bson.M{"$regex": name, "$options": "i"}},
 			bson.M{"originaltitle": bson.M{"$regex": name, "$options": "i"}},
 		},
 	}
@@ -255,4 +256,21 @@ func (app *application) Deletecmnt(id string) error {
 
 }
 
+func (app *application) ADDmovie(movie models.Movie) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("AllMovies")
+	_, err := collection.InsertOne(ctx, movie)
+	if err != nil {
+		return "Error inserting movie", err
+	}
+	return "movie inserted ", nil
 
+}
+
+func (app *application) GenerateMovieid() int {
+
+	rand.Seed(time.Now().UnixNano())  
+	return rand.Intn(900000) + 100000 
+
+}
