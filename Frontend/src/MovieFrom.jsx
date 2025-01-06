@@ -3,8 +3,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import styled from "styled-components";
+import { useState, useEffect } from "react";
+import Swal from "sweetalert2"; 
+import { Navigate } from 'react-router-dom'; 
 
-// Validation schema using Zod
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   overview: z.string().min(1, "Overview is required"),
@@ -29,32 +31,78 @@ const MovieForm = () => {
     },
   });
 
-  const onSubmit = (values) => {
-    const body={
-        title:values.title,
-        backdrop_path:"",
-        id:0,
-        overview:values.overview,
-        adult:values.adult,
-        originalTitle:values.original_title,
-        originalLang:values.original_language,
-        releaseDate:values.release_date,
-        poster_path:"",
-        popularity:0.0,
-        vote_average:0.0,
-        votecount:0.0
+  const [name, setName] = useState("");
+  
+  useEffect(() => {
+     const headers = new Headers();
+     headers.append('Content-Type', 'application/json');
+     const reqOptions = {
+       method: 'GET',
+       headers: headers,
+       credentials: 'include'
+     };
+ 
+     fetch(`http://localhost:4000/Username`, reqOptions)
+       .then(response => response.json())
+       .then(data => setName(data.username));
+ 
+     return () => setName(""); 
+   }, []);
 
-    }
-    const headers=new Headers()
-    headers.append('Content-Type', 'application/json')
-    const requestoptions={
-        method:'POST',
-        headers:headers,
-        body:JSON.stringify(body)
-    }
-    fetch(`http://localhost:4000/addusermovies`,requestoptions)
-    .then(response => response.json())
-    .then(data => console.log(data))
+  const onSubmit = (values) => {
+    const body = {
+      title: values.title,
+      backdrop_path: "",
+      id: 0,
+      overview: values.overview,
+      adult: values.adult,
+      originalTitle: values.originalTitle,
+      originalLang: values.originalLang,
+      releaseDate: values.releaseDate,
+      poster_path: "",
+      popularity: 0.0,
+      vote_average: 0.0,
+      votecount: 0.0,
+      author: name,
+    };
+
+    const headers = new Headers();
+    headers.append('Content-Type', 'application/json');
+    const requestOptions = {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(body),
+    };
+
+    fetch(`http://localhost:4000/addusermovies`, requestOptions)
+      .then(response => response.json())
+      .then(data => {
+        if (data.status !==200) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Movie Insertion Failed',
+            text: 'There was an issue inserting the movie.',
+            confirmButtonText: 'Try Again',
+          });
+        } else {
+          Swal.fire({
+            icon: 'success',
+            title: 'Movie Added Successfully',
+            text: 'The movie has been successfully added!',
+            confirmButtonText: 'Go to Home',
+          }).then(() => {
+            Navigate(`/`); 
+          });
+        }
+      })
+      .catch(err => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Something went wrong',
+          text: 'There was an error with the network. Please try again later.',
+          confirmButtonText: 'OK',
+        });
+      });
   };
 
   return (
@@ -115,7 +163,7 @@ const MovieForm = () => {
   );
 };
 
-// Styled Components
+
 const Container = styled.div`
   min-height: 100vh;
   display: flex;

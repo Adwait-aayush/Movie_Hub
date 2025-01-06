@@ -383,7 +383,7 @@ func (app *application) DeleteComment(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) addmovies(w http.ResponseWriter, r *http.Request) {
-	var movie models.Movie
+	var movie models.UserMovies
 	err := json.NewDecoder(r.Body).Decode(&movie)
 	if err != nil {
 		http.Error(w, "Error decoding request body", http.StatusBadRequest)
@@ -394,6 +394,10 @@ func (app *application) addmovies(w http.ResponseWriter, r *http.Request) {
 		Page    int `json:"page"`
 		Results []struct {
 			PosterPath string `json:"poster_path"`
+			ReleaseDate string`json:"release_date"`
+			Popularity float64 `json:"popularity"`
+			VoteCount int `json:"vote_count"`
+			VoteAverage float64 `json:"vote_average"`
 		} `json:"results"`
 	}
 
@@ -430,26 +434,40 @@ func (app *application) addmovies(w http.ResponseWriter, r *http.Request) {
 	if len(responseobject.Results) > 0 {
 		movie.PosterPath = responseobject.Results[0].PosterPath
 	}
+	
+	if len(responseobject.Results) > 1 {
+		movie.ReleaseDate = responseobject.Results[1].ReleaseDate
+	}
+	
+	if len(responseobject.Results) > 2 {
+		movie.Popularity = responseobject.Results[2].Popularity
+	}
+	
+	if len(responseobject.Results) > 3 {
+		movie.VoteCount = responseobject.Results[3].VoteCount
+	}
+	
+	if len(responseobject.Results) > 4 {
+		movie.VoteAverage = responseobject.Results[4].VoteAverage
+	}
+	
 
 	id := app.GenerateMovieid()
 
 
 	movie.ID = id
-
-	response, err := app.ADDmovie(movie)
-	if err != nil {
-		http.Error(w, "Error creating movie", http.StatusInternalServerError)
-		return
-	}
-
 	type response1 struct {
 		Message string `json:"message"`
-		Error   string `json:"error,omitempty"`
+		Status int  `json:"status"`
 	}
+	response, status := app.ADDmovie(movie)
+	
+
+	
 
 	resp1 := response1{
 		Message: response,
-	
+	    Status:status,
 	}
 
 	

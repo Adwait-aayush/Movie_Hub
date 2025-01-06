@@ -45,7 +45,7 @@ export default function Navbuttons() {
       .then(response => response.json())
       .then(data => setName(data.username));
 
-    // Cleanup function for effect
+    
     return () => setName(""); 
   }, []);
 

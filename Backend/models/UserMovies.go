@@ -1,6 +1,6 @@
 package models
 
-type Movie struct {
+type UserMovies struct {
 	Adult         bool    `json:"adult" bson:"adult"`
 	BackdropPath  string  `json:"backdrop_path" bson:"backdroppath"`
 	ID            int     `json:"id" bson:"id"`
@@ -13,4 +13,5 @@ type Movie struct {
 	Popularity    float64 `json:"popularity" bson:"popularity"`
 	VoteAverage   float64 `json:"vote_average" bson:"voteaverage"`
 	VoteCount     int     `json:"vote_count" bson:"votecount"`
+	Author        string  `json:"author" bson:"author"`
 }

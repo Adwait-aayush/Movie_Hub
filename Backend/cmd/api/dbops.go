@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"math/rand"
+	"net/http"
 	"project/models"
 	"time"
 
@@ -256,16 +257,37 @@ func (app *application) Deletecmnt(id string) error {
 
 }
 
-func (app *application) ADDmovie(movie models.Movie) (string, error) {
+func (app *application) ADDmovie(movie models.UserMovies) (string, int) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	collection := app.DB.Database("MovieHub").Collection("AllMovies")
+	collection := app.DB.Database("MovieHub").Collection("Usermovies")
 	_, err := collection.InsertOne(ctx, movie)
 	if err != nil {
-		return "Error inserting movie", err
+		return "Error inserting movie", http.StatusBadGateway
 	}
-	return "movie inserted ", nil
+	
+	
+	var movie1 models.Movie
+	movie1.Adult=movie.Adult
+	movie1.ID=movie.ID
+	movie1.OriginalLang=movie.OriginalLang
+	movie1.BackdropPath=movie.BackdropPath
+	movie1.OriginalTitle=movie.OriginalTitle
+	movie1.Overview=movie.Overview
+	movie1.Popularity=movie.Popularity
+	movie1.PosterPath=movie.PosterPath
+	movie1.ReleaseDate=movie.ReleaseDate
+	movie1.Title=movie.Title
+	movie1.VoteAverage=movie.VoteAverage
+	movie1.VoteCount=movie.VoteCount
 
+	collection=app.DB.Database("MovieHub").Collection("AllMovies")
+	_, err = collection.InsertOne(ctx, movie1)
+	if err!=nil{
+		return "Error inserting movie1", http.StatusExpectationFailed
+	}
+
+	return "movie inserted ", http.StatusOK
 }
 
 func (app *application) GenerateMovieid() int {
