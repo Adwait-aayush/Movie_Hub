@@ -479,3 +479,39 @@ func (app *application) addmovies(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func (app *application) UserMovies (w http.ResponseWriter,r *http.Request){
+	query := r.URL.Query().Get("name")
+	if query==""{
+		http.Error(w, "Error: Please enter a name", http.StatusBadRequest)
+	}
+
+	movies,err:=app.ShowUsermovies(query)
+	if err!=nil{
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.Header().Set("Content-Type","application/json")
+	json.NewEncoder(w).Encode(movies)
+}
+
+func (app *application) DeleteMovies (w http.ResponseWriter,r *http.Request){
+	id:=chi.URLParam(r,"id")
+	id1,err:=strconv.Atoi(id)
+	if err!=nil{
+		http.Error(w, "Error: Invalid id", http.StatusBadRequest)
+	}
+	message,status:=app.DeleteMoviesbyid(id1)
+	type response struct {
+		Message string `json:"message"`
+		Status int `json:"status"`
+	}
+	response1:=response{
+		Message: message,
+		Status:status,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response1)
+	if err!=nil{
+		http.Error(w, "Error encoding response", http.StatusInternalServerError)
+	}
+}

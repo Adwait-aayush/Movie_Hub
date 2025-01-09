@@ -67,7 +67,7 @@ export default function Navbuttons() {
         )}
 
         {name !== "" && (
-          <button className="home">
+          <button onClick={()=>navigate("/UserMovies")} className="home">
             <FontAwesomeIcon icon={faUpload} size="3x" />
             <p>Your Movies</p>
           </button>

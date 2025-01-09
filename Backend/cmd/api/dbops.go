@@ -296,3 +296,36 @@ func (app *application) GenerateMovieid() int {
 	return rand.Intn(900000) + 100000 
 
 }
+
+func (app *application) ShowUsermovies (name string) ([]models.Movie,error){
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("Usermovies")
+	
+    filter:=bson.M{"author":bson.M{"$regex":name}}
+	cursor,err:=collection.Find(ctx,filter)
+	if err!=nil{
+		return nil,err
+	}
+	var movies []models.Movie
+	for cursor.Next(ctx) {
+		var movie models.Movie
+		if err := cursor.Decode(&movie); err != nil {
+			return nil, err
+
+		}
+		movies = append(movies, movie)
+	}
+	return movies, nil
+}
+func (app *application) DeleteMoviesbyid (id int) (string, int) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	collection := app.DB.Database("MovieHub").Collection("Usermovies")
+	filter:=bson.M{"id":id}
+	_,err:=collection.DeleteOne(ctx,filter)
+	if err!=nil{
+		return "Error deleting movie", http.StatusInternalServerError
+	}
+      return "Movie deleted", http.StatusOK
+}

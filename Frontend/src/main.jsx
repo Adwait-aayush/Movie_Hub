@@ -8,6 +8,7 @@ import MovieForm from './MovieFrom';
 import Registration from './Registration';
 import LoginForm from './LoginForm';
 import Movie from './Movie';
+import Usermovs from './Usermovs';
 import Search from './search';
 
 const router = createBrowserRouter([
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       { path: '/addmov', element: <MovieForm /> },
       {path :'/movie/:id',element:<Movie/>},
       {path :'/Search',element:<Search/>},
+      {path :'/UserMovies',element:<Usermovs/>},
     ],
   },
   { path: '/Registration', element: <Registration /> }, {path:"/Login",element:<LoginForm/>},
