@@ -130,7 +130,6 @@ func (app *application) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Setting username in the session
 	session.Values["username"] = user.Username
 	err = session.Save(r, w)
 	if err != nil {
@@ -163,14 +162,13 @@ func (app *application) LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 	message, status, error := app.Login(&user)
 
-	// Find the user in the database
 	existingUser, err := app.FindUser(&user)
 	if err != nil {
 		http.Error(w, "Failed to find user: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Set the session for the logged-in user
+	
 	session, err := store.Get(r, "session-id")
 	if err != nil {
 		http.Error(w, "Failed to get session: "+err.Error(), http.StatusInternalServerError)
@@ -202,14 +200,14 @@ func (app *application) GetUsername(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if username exists in session
+	
 	username, ok := session.Values["username"].(string)
 	if !ok {
 		http.Error(w, "Username not found in session", http.StatusBadRequest)
 		return
 	}
 
-	// Respond with username
+
 	type response struct {
 		Username string `json:"username"`
 	}
