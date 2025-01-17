@@ -124,7 +124,6 @@ func (app *application) Register(w http.ResponseWriter, r *http.Request) {
 	}
 	message, status, error := app.RegisterUser(&user)
 
-	// Set the session for the user after successful registration
 	session, err := store.Get(r, "session-id")
 	if err != nil {
 		http.Error(w, "Failed to get session: "+err.Error(), http.StatusInternalServerError)
